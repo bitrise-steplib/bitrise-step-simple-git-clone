@@ -6,14 +6,11 @@ workflows:
     envs:
       - BITRISE_SOURCE_DIR: .
     after_run:
-      - _test_submodule
       - _test_no_checkout
       - _test_checkout_commit
       - _test_checkout_tag
       - _test_checkout_branch
       - _test_checkout_different_dir
-      - _test_checkout_with_depth
-      - _test_unshallow
       - _test_ssh_git_prefix
     steps:
       - go-list:
@@ -25,19 +22,6 @@ workflows:
   ci:
     before_run:
       - test
-  _test_submodule:
-    before_run:
-      - _create_tmpdir
-    steps:
-      - path::./:
-          title: Test submodule checkout
-          run_if: true
-          inputs:
-            - repository_url: https://github.com/bitrise-io/git-clone-test.git
-            - branch: "master"
-      - ensure-clean-git:
-          inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
   _test_no_checkout:
     before_run:
       - _create_tmpdir
@@ -60,7 +44,6 @@ workflows:
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
             - commit: c0f043f46868eae84275381468978891bda37bc5
-            - update_submodules: "No"
       - ensure-clean-git:
           inputs:
             - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
@@ -74,7 +57,6 @@ workflows:
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
             - tag: 0.9.3
-            - update_submodules: "No"
       - ensure-clean-git:
           inputs:
             - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
@@ -88,7 +70,6 @@ workflows:
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
             - branch: master
-            - update_submodules: "No"
       - ensure-clean-git:
           inputs:
             - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
@@ -106,40 +87,9 @@ workflows:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
             - clone_into_dir: $STEP_TMPDIR_NEW
             - branch: master
-            - update_submodules: "No"
       - ensure-clean-git:
           inputs:
             - dir_to_check: $STEP_TMPDIR_NEW
-  _test_checkout_with_depth:
-    before_run:
-      - _create_tmpdir
-    steps:
-      - path::./:
-          title: Test checkout with depth=1
-          run_if: true
-          inputs:
-            - repository_url: https://github.com/bitrise-io/git-clone-test.git
-            - branch: master
-            - clone_depth: 1
-            - update_submodules: "No"
-      - ensure-clean-git:
-          inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
-  _test_unshallow:
-    before_run:
-      - _create_tmpdir
-    steps:
-      - path::./:
-          title: Test fallback to unshallow checkout
-          run_if: true
-          inputs:
-            - repository_url: https://github.com/bitrise-io/git-clone-test.git
-            - commit: c0f043f46868eae84275381468978891bda37bc5
-            - update_submodules: "No"
-            - clone_depth: 1
-      - ensure-clean-git:
-          inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
   _test_ssh_git_prefix:
     before_run:
       - _create_tmpdir
@@ -150,7 +100,6 @@ workflows:
           inputs:
             - repository_url: "ssh://git@gitlab.com:22/bitrise/git-clone-test.git"
             - commit: 4e62c10bbbedcaf949216946849770bcfa441c99
-            - update_submodules: "No"
       - ensure-clean-git:
           inputs:
             - dir_to_check: $BITRISE_SOURCE_DIR/_tmp

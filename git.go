@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/command"
@@ -36,19 +35,6 @@ func isOriginPresent(gitCmd git.Git, dir, repoURL string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-func resetRepo(gitCmd git.Git) error {
-	if err := run(gitCmd.Reset("--hard", "HEAD")); err != nil {
-		return err
-	}
-	if err := run(gitCmd.Clean("-x", "-d", "-f")); err != nil {
-		return err
-	}
-	if err := run(gitCmd.SubmoduleForeach(gitCmd.Reset("--hard", "HEAD"))); err != nil {
-		return err
-	}
-	return run(gitCmd.SubmoduleForeach(gitCmd.Clean("-x", "-d", "-f")))
 }
 
 func getCheckoutArg(commit, tag, branch string) string {
@@ -89,12 +75,10 @@ func runWithRetry(f func() *command.Model) error {
 	})
 }
 
-func checkout(gitCmd git.Git, arg, branch string, depth int, isTag bool) error {
+func checkout(gitCmd git.Git, arg, branch string, isTag bool) error {
 	if err := runWithRetry(func() *command.Model {
 		var opts []string
-		if depth != 0 {
-			opts = append(opts, "--depth="+strconv.Itoa(depth))
-		}
+
 		if isTag {
 			opts = append(opts, "--tags")
 		}
@@ -107,18 +91,7 @@ func checkout(gitCmd git.Git, arg, branch string, depth int, isTag bool) error {
 	}
 
 	if err := run(gitCmd.Checkout(arg)); err != nil {
-		if depth == 0 {
-			return fmt.Errorf("checkout failed (%s), error: %v", arg, err)
-		}
-		log.Warnf("Checkout failed, error: %v\nUnshallow...", err)
-		if err := runWithRetry(func() *command.Model {
-			return gitCmd.Fetch("--unshallow")
-		}); err != nil {
-			return fmt.Errorf("fetch failed, error: %v", err)
-		}
-		if err := run(gitCmd.Checkout(arg)); err != nil {
-			return fmt.Errorf("checkout failed (%s), error: %v", arg, err)
-		}
+		return fmt.Errorf("checkout failed (%s), error: %v", arg, err)
 	}
 
 	return nil

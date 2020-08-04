@@ -81,33 +81,3 @@ inputs:
         Git branch that needs to be checked out.
       description: |-
         Git branch that needs to be checked out.
-  - update_submodules: "Yes"
-    opts:
-      category: Clone Config
-      title: Update the registered submodules?
-      summary: |-
-        Update the registered submodules?
-      description: |-
-        Update the registered submodules?
-      value_options:
-        - "Yes"
-        - "No"
-  - clone_depth:
-    opts:
-      category: Clone Config
-      title: "Limit fetching to the specified number of commits"
-      summary: |-
-        Limit fetching to the specified number of commits.
-      description: |-
-        Limit fetching to the specified number of commits.
-        The value should be a decimal number, for example `10`.
-  - reset_repository: "No"
-    opts:
-      category: Debug
-      summary: Reset repository contents with git reset --hard HEAD and git clean -f after repository updated
-      description: |-
-        Reset repository contents with git reset --hard HEAD and git clean -f after repository updated.
-      title: Reset repository
-      value_options:
-        - "Yes"
-        - "No"

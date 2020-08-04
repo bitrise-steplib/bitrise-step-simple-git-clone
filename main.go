@@ -10,14 +10,11 @@ import (
 )
 
 type config struct {
-	RepositoryURL       string `env:"repository_url,required"`
-	CloneIntoDir        string `env:"clone_into_dir,required"`
-	Commit              string `env:"commit"`
-	Tag                 string `env:"tag"`
-	Branch              string `env:"branch"`
-	ResetRepository     bool   `env:"reset_repository,opt[Yes,No]"`
-	CloneDepth          int    `env:"clone_depth"`
-	UpdateSubmodules    bool   `env:"update_submodules,opt[Yes,No]"`
+	RepositoryURL string `env:"repository_url,required"`
+	CloneIntoDir  string `env:"clone_into_dir,required"`
+	Commit        string `env:"commit"`
+	Tag           string `env:"tag"`
+	Branch        string `env:"branch"`
 }
 
 func mainE() error {
@@ -38,11 +35,6 @@ func mainE() error {
 		return fmt.Errorf("check if origin is presented, error: %v", err)
 	}
 
-	if originPresent && cfg.ResetRepository {
-		if err := resetRepo(gitCmd); err != nil {
-			return fmt.Errorf("reset repository, error: %v", err)
-		}
-	}
 	if err := run(gitCmd.Init()); err != nil {
 		return fmt.Errorf("init repository, error: %v", err)
 	}
@@ -53,7 +45,7 @@ func mainE() error {
 	}
 
 	if checkoutArg != "" {
-		if err := checkout(gitCmd, checkoutArg, cfg.Branch, cfg.CloneDepth, cfg.Tag != ""); err != nil {
+		if err := checkout(gitCmd, checkoutArg, cfg.Branch, cfg.Tag != ""); err != nil {
 			return fmt.Errorf("checkout (%s): %v", checkoutArg, err)
 		}
 		// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
@@ -61,12 +53,6 @@ func mainE() error {
 			if err := run(gitCmd.Merge("origin/" + cfg.Branch)); err != nil {
 				return fmt.Errorf("merge %q: %v", cfg.Branch, err)
 			}
-		}
-	}
-
-	if cfg.UpdateSubmodules {
-		if err := run(gitCmd.SubmoduleUpdate()); err != nil {
-			return fmt.Errorf("submodule update: %v", err)
 		}
 	}
 
