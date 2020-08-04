@@ -1,16 +1,18 @@
 title: |-
   Simple Git Clone
 summary: |-
-  The step checks out the defined repository state, optionally updates the repository submodules without interfering with environmental variables.
+  The step checks out the defined repository state without interfering with environmental variables.
 description: |
   The checkout process depends on the checkout properties: the Step checks out a repository state defined by a branch, git commit or a git tag.
 
   ### Configuring the Step
 
-  1. The **Git repository URL** and the ** Clone destination (local)directory path** fields are required fields and the later is automatically filled out based on your project settings.
-  Optionally, you can modify the following fields in the **Clone Config** section:
-  1. You can set the **Update the registered submodules?** option to `yes` to pull the most up-to-date version of the submodule from the submodule's repository.
-  2. You can set the number of commits you want the Step to fetch in the **Limit fetching to the specified number of commits** option. Make sure you set a decimal number.
+  1. The **Git repository URL** is required field, the address of the repository that needs to be cloned.
+  2. The **Clone destination** is required field, the local path where we need to clone. This is set by default to *_tmp* in current work directory
+  3. In the **Clone Config** section there should be exactly one set of the following:
+     - **Branch**
+     - **Tag**
+     - **Commit**
 
   ### Related Steps
 
