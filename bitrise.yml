@@ -3,10 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
   test:
-    envs:
-      - BITRISE_SOURCE_DIR: .
     after_run:
-      - _test_no_checkout
       - _test_checkout_commit
       - _test_checkout_tag
       - _test_checkout_branch
@@ -22,18 +19,6 @@ workflows:
   ci:
     before_run:
       - test
-  _test_no_checkout:
-    before_run:
-      - _create_tmpdir
-    steps:
-      - path::./:
-          title: Test run without checkout
-          run_if: true
-          inputs:
-            - repository_url: https://github.com/bitrise-io/git-clone-test.git
-      - ensure-clean-git:
-          inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
   _test_checkout_commit:
     before_run:
       - _create_tmpdir
@@ -43,10 +28,11 @@ workflows:
           run_if: true
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
+            - clone_into_dir: ./_tmp
             - commit: c0f043f46868eae84275381468978891bda37bc5
       - ensure-clean-git:
           inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
+            - dir_to_check: ./_tmp
   _test_checkout_tag:
     before_run:
       - _create_tmpdir
@@ -56,10 +42,11 @@ workflows:
           run_if: true
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
+            - clone_into_dir: ./_tmp
             - tag: 0.9.3
       - ensure-clean-git:
           inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
+            - dir_to_check: ./_tmp
   _test_checkout_branch:
     before_run:
       - _create_tmpdir
@@ -69,10 +56,11 @@ workflows:
           run_if: true
           inputs:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
+            - clone_into_dir: ./_tmp
             - branch: master
       - ensure-clean-git:
           inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
+            - dir_to_check: ./_tmp
   _test_checkout_different_dir:
     before_run:
       - _create_tmpdir
@@ -99,10 +87,11 @@ workflows:
           run_if: true
           inputs:
             - repository_url: "ssh://git@gitlab.com:22/bitrise/git-clone-test.git"
+            - clone_into_dir: ./_tmp
             - commit: 4e62c10bbbedcaf949216946849770bcfa441c99
       - ensure-clean-git:
           inputs:
-            - dir_to_check: $BITRISE_SOURCE_DIR/_tmp
+            - dir_to_check: ./_tmp
   _create_tmpdir:
     steps:
       - script:

@@ -2,61 +2,16 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
+	"os"
 )
-
-func isOriginPresent(gitCmd git.Git, dir, repoURL string) (bool, error) {
-	absDir, err := pathutil.AbsPath(dir)
-	if err != nil {
-		return false, err
-	}
-
-	gitDir := filepath.Join(absDir, ".git")
-	if exist, err := pathutil.IsDirExists(gitDir); err != nil {
-		return false, err
-	} else if exist {
-		remotes, err := output(gitCmd.RemoteList())
-		if err != nil {
-			return false, err
-		}
-
-		if !strings.Contains(remotes, repoURL) {
-			return false, fmt.Errorf(".git folder exists in the directory (%s), but using a different remote", dir)
-		}
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func getCheckoutArg(commit, tag, branch string) string {
-	switch {
-	case commit != "":
-		return commit
-	case tag != "":
-		return tag
-	case branch != "":
-		return branch
-	default:
-		return ""
-	}
-}
 
 func run(c *command.Model) error {
 	log.Infof(c.PrintableCommandArgs())
 	return c.SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
-}
-
-func output(c *command.Model) (string, error) {
-	return c.RunAndReturnTrimmedCombinedOutput()
 }
 
 func runWithRetry(f func() *command.Model) error {
@@ -75,23 +30,23 @@ func runWithRetry(f func() *command.Model) error {
 	})
 }
 
-func checkout(gitCmd git.Git, arg, branch string, isTag bool) error {
+func checkout(gitCmd git.Git, arg string, checkoutType checkoutType) error {
 	if err := runWithRetry(func() *command.Model {
 		var opts []string
 
-		if isTag {
+		if checkoutType == tag {
 			opts = append(opts, "--tags")
 		}
-		if branch == arg {
-			opts = append(opts, "origin", branch)
+		if checkoutType == branch {
+			opts = append(opts, "origin", arg)
 		}
 		return gitCmd.Fetch(opts...)
 	}); err != nil {
-		return fmt.Errorf("Fetch failed, error: %v", err)
+		return fmt.Errorf("fetch failed: %v", err)
 	}
 
 	if err := run(gitCmd.Checkout(arg)); err != nil {
-		return fmt.Errorf("checkout failed (%s), error: %v", arg, err)
+		return fmt.Errorf("checkout failed %s: %v", arg, err)
 	}
 
 	return nil

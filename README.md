@@ -1,6 +1,5 @@
 # Simple Git Clone
-
-This unpublished step can be used to clone external repositories if any of the other steps have such external dependencies.
+The step checks out the defined repository state. The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
 
 
 ## How to use this Step

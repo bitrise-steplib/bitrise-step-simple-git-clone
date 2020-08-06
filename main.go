@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -17,56 +18,81 @@ type config struct {
 	Branch        string `env:"branch"`
 }
 
+type checkoutType string
+
+const (
+	commit checkoutType = "commit"
+	tag                 = "tag"
+	branch              = "branch"
+)
+
 func mainE() error {
 	var cfg config
 	if err := stepconf.Parse(&cfg); err != nil {
-		failf("Error: %s\n", err)
+		return fmt.Errorf("parse step configuration: %v", err)
 	}
 	stepconf.Print(cfg)
 
+	var checkoutType checkoutType
+	var checkoutArg string
+
+	var setCheckoutArg = func(arg string) error {
+		if checkoutArg != "" {
+			return errors.New("exactly one of [branch, tag, commit] input must be set")
+		}
+		checkoutArg = arg
+		return nil
+	}
+
+	if cfg.Commit != "" {
+		checkoutType = commit
+		checkoutArg = cfg.Commit
+	}
+	if cfg.Tag != "" {
+		checkoutType = tag
+		if err := setCheckoutArg(cfg.Tag); err != nil {
+			return fmt.Errorf("process inputs: %v", err)
+		}
+	}
+	if cfg.Branch != "" {
+		checkoutType = branch
+		if err := setCheckoutArg(cfg.Branch); err != nil {
+			return fmt.Errorf("process inputs: %v", err)
+		}
+	}
+	if checkoutArg == "" {
+		return errors.New("tag, commit or branch input must be set")
+	}
+
 	gitCmd, err := git.New(cfg.CloneIntoDir)
 	if err != nil {
-		return fmt.Errorf("create gitCmd project, error: %v", err)
-	}
-	checkoutArg := getCheckoutArg(cfg.Commit, cfg.Tag, cfg.Branch)
-
-	originPresent, err := isOriginPresent(gitCmd, cfg.CloneIntoDir, cfg.RepositoryURL)
-	if err != nil {
-		return fmt.Errorf("check if origin is presented, error: %v", err)
+		return fmt.Errorf("create gitCmd project: %v", err)
 	}
 
 	if err := run(gitCmd.Init()); err != nil {
-		return fmt.Errorf("init repository, error: %v", err)
+		return fmt.Errorf("init repository: %v", err)
 	}
-	if !originPresent {
-		if err := run(gitCmd.RemoteAdd("origin", cfg.RepositoryURL)); err != nil {
-			return fmt.Errorf("add remote repository (%s), error: %v", cfg.RepositoryURL, err)
-		}
+	if err := run(gitCmd.RemoteAdd("origin", cfg.RepositoryURL)); err != nil {
+		return fmt.Errorf("add remote repository %s: %v", cfg.RepositoryURL, err)
 	}
 
-	if checkoutArg != "" {
-		if err := checkout(gitCmd, checkoutArg, cfg.Branch, cfg.Tag != ""); err != nil {
-			return fmt.Errorf("checkout (%s): %v", checkoutArg, err)
-		}
-		// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
-		if checkoutArg == cfg.Branch {
-			if err := run(gitCmd.Merge("origin/" + cfg.Branch)); err != nil {
-				return fmt.Errorf("merge %q: %v", cfg.Branch, err)
-			}
+	if err := checkout(gitCmd, checkoutArg, checkoutType); err != nil {
+		return fmt.Errorf("checkout %s: %v", checkoutArg, err)
+	}
+	// Update branch: 'git fetch' followed by a 'git merge' is the same as 'git pull'.
+	if checkoutType == branch {
+		if err := run(gitCmd.Merge("origin/" + checkoutArg)); err != nil {
+			return fmt.Errorf("merge %s: %v", checkoutArg, err)
 		}
 	}
 
 	return nil
 }
 
-func failf(format string, v ...interface{}) {
-	log.Errorf(format, v...)
-	os.Exit(1)
-}
-
 func main() {
 	if err := mainE(); err != nil {
-		failf("ERROR: %v", err)
+		log.Errorf("ERROR: %v", err)
+		os.Exit(1)
 	}
 	log.Donef("\nSuccess")
 }

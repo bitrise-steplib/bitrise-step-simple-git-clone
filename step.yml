@@ -1,14 +1,14 @@
 title: |-
   Simple Git Clone
 summary: |-
-  The step checks out the defined repository state without interfering with environmental variables.
+  The step checks out the defined repository state.
 description: |
-  The checkout process depends on the checkout properties: the Step checks out a repository state defined by a branch, git commit or a git tag.
+  The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
 
   ### Configuring the Step
 
   1. The **Git repository URL** is required field, the address of the repository that needs to be cloned.
-  2. The **Clone destination** is required field, the local path where we need to clone. This is set by default to *_tmp* in current work directory
+  2. The **Clone destination** is required field, the local path where we need to clone.
   3. In the **Clone Config** section there should be exactly one set of the following:
      - **Branch**
      - **Tag**
@@ -35,10 +35,8 @@ run_if: ""
 deps:
   brew:
     - name: git
-    - name: wget
   apt_get:
     - name: git
-    - name: wget
 toolkit:
   go:
     package_name: github.com/bitrise-steplib/bitrise-step-simple-git-clone
@@ -51,7 +49,7 @@ inputs:
       description: |-
         The step will try to fetch the repository from the given URL and clone it to the defined clone directory.
       is_required: true
-  - clone_into_dir: "$BITRISE_SOURCE_DIR/_tmp"
+  - clone_into_dir:
     opts:
       title: "Clone destination (local) directory path"
       summary: |-
@@ -61,24 +59,21 @@ inputs:
       is_required: true
   - commit:
     opts:
-      category: Clone Config
-      title: "Git Commit to clone"
+      title: "Git Commit to check out"
       summary: |-
         Hash of a commit that needs to be checked out.
       description: |-
         Hash of a commit that needs to be checked out.
   - tag:
     opts:
-      category: Clone Config
-      title: "Git Tag to clone"
+      title: "Git Tag to check out"
       summary: |-
         Git tag that needs to be checked out.
       description: |-
         Git tag that needs to be checked out.
   - branch:
     opts:
-      category: Clone Config
-      title: "Git Branch to clone"
+      title: "Git Branch to check out"
       summary: |-
         Git branch that needs to be checked out.
       description: |-
