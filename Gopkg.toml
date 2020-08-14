@@ -6,6 +6,14 @@
   name = "github.com/bitrise-tools/go-steputils"
   branch = "master"
 
+[[constraint]]
+  name = "github.com/onsi/gomega"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/onsi/ginkgo"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

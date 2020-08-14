@@ -1,11 +1,11 @@
 # Simple Git Clone
-The step checks out the defined repository state. The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
 
+The step checks out the defined repository state. The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
 
 ## How to use this Step
 
 Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
+just `git clone` this repository, `cd` into its folder in your Terminal/Command Line
 and call `bitrise run test`.
 
 *Check the `bitrise.yml` file for required inputs which have to be

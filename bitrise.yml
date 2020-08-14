@@ -4,11 +4,11 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   test:
     after_run:
-      - _test_checkout_commit
-      - _test_checkout_tag
-      - _test_checkout_branch
-      - _test_checkout_different_dir
-      - _test_ssh_git_prefix
+      - test_checkout_commit
+      - test_checkout_tag
+      - test_checkout_branch
+      - test_checkout_different_dir
+      - test_ssh_git_prefix
     steps:
       - go-list:
       - golint:
@@ -16,10 +16,12 @@ workflows:
       - go-test:
       - activate-ssh-key:
           run_if: true
+
   ci:
     before_run:
       - test
-  _test_checkout_commit:
+
+  test_checkout_commit:
     before_run:
       - _create_tmpdir
     steps:
@@ -33,7 +35,8 @@ workflows:
       - ensure-clean-git:
           inputs:
             - dir_to_check: ./_tmp
-  _test_checkout_tag:
+
+  test_checkout_tag:
     before_run:
       - _create_tmpdir
     steps:
@@ -47,7 +50,8 @@ workflows:
       - ensure-clean-git:
           inputs:
             - dir_to_check: ./_tmp
-  _test_checkout_branch:
+
+  test_checkout_branch:
     before_run:
       - _create_tmpdir
     steps:
@@ -61,7 +65,8 @@ workflows:
       - ensure-clean-git:
           inputs:
             - dir_to_check: ./_tmp
-  _test_checkout_different_dir:
+
+  test_checkout_different_dir:
     before_run:
       - _create_tmpdir
     steps:
@@ -78,7 +83,8 @@ workflows:
       - ensure-clean-git:
           inputs:
             - dir_to_check: $STEP_TMPDIR_NEW
-  _test_ssh_git_prefix:
+
+  test_ssh_git_prefix:
     before_run:
       - _create_tmpdir
     steps:
@@ -92,6 +98,7 @@ workflows:
       - ensure-clean-git:
           inputs:
             - dir_to_check: ./_tmp
+
   _create_tmpdir:
     steps:
       - script:
@@ -102,6 +109,7 @@ workflows:
           is_always_run: true
           inputs:
             - path: $STEP_TMPDIR
+
   dep-update:
     title: Dep update
     description: |
