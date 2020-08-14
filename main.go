@@ -35,17 +35,14 @@ const (
 	branch              = "branch"
 )
 
-var parser configParser
-var gitFactory gitCommandFactory
-
-func init() {
-	parser = bitriseConfigParser{}
-	gitFactory = realGitCommandFactory{}
+type simpleGitCloner struct {
+	parser     configParser
+	gitFactory gitCommandFactory
 }
 
-func mainE() error {
+func (c simpleGitCloner) clone() error {
 	var cfg config
-	if err := parser.parse(&cfg); err != nil {
+	if err := c.parser.parse(&cfg); err != nil {
 		return fmt.Errorf("parse step configuration: %v", err)
 	}
 	stepconf.Print(cfg)
@@ -81,7 +78,7 @@ func mainE() error {
 		return errors.New("tag, commit or branch input must be set")
 	}
 
-	gitCmd, err := gitFactory.new(cfg.CloneIntoDir)
+	gitCmd, err := c.gitFactory.new(cfg.CloneIntoDir)
 	if err != nil {
 		return fmt.Errorf("create gitCmd project: %v", err)
 	}
@@ -106,8 +103,17 @@ func mainE() error {
 	return nil
 }
 
+var simpleCloner simpleGitCloner
+
+func init() {
+	simpleCloner = simpleGitCloner{
+		parser:     bitriseConfigParser{},
+		gitFactory: realGitCommandFactory{},
+	}
+}
+
 func main() {
-	if err := mainE(); err != nil {
+	if err := simpleCloner.clone(); err != nil {
 		log.Errorf("ERROR: %v", err)
 		os.Exit(1)
 	}

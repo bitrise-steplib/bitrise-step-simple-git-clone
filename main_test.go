@@ -1,149 +1,158 @@
 package main
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
-var configParserMock func(conf *config) error
-var storeOpts func(opts []string)
-var storeArg func(arg string)
+func TestSimpleCloneStepNoInputFails(t *testing.T) {
+	// Arrange
+	var err error
+	parser := new(mockConfigParser)
+	gitFactory := new(mockGitCommandFactory)
+	cloner := simpleGitCloner{
+		parser:     parser,
+		gitFactory: gitFactory,
+	}
 
-type mockConfigParser struct{}
-type mockGitCommandFactory struct{}
-type mockGitCommand struct{}
+	parser.On("parse", mock.Anything).Return(nil)
 
-func (m mockGitCommand) init() error {
-	return nil
+	// Act
+	err = cloner.clone()
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "tag, commit or branch input must be set")
 }
 
-func (m mockGitCommand) addRemote(_, _ string) error {
-	return nil
-}
+func TestSimpleCloneStepMultipleInputsFails(t *testing.T) {
+	// Arrange
+	var err error
+	parser := new(mockConfigParser)
+	gitFactory := new(mockGitCommandFactory)
+	cloner := simpleGitCloner{
+		parser:     parser,
+		gitFactory: gitFactory,
+	}
 
-func (m mockGitCommand) merge(_ string) error {
-	return nil
-}
-
-func (m mockGitCommand) fetchWithRetry(opts ...string) error {
-	storeOpts(opts)
-	return nil
-}
-
-func (m mockGitCommand) checkout(arg string) error {
-	storeArg(arg)
-	return nil
-}
-
-func (m mockGitCommandFactory) new(_ string) (gitCommand, error) {
-	return mockGitCommand{}, nil
-}
-
-func (m mockConfigParser) parse(conf *config) error {
-	return configParserMock(conf)
-}
-
-func TestCloneStep(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Clone Step Suite")
-}
-
-var _ = Describe("clone step", func() {
-	parser = mockConfigParser{}
-	gitFactory = mockGitCommandFactory{}
-	Context("parsing inputs", func() {
-		When("there is no branch, tag or commit set", func() {
-			var e error
-			configParserMock = func(conf *config) error {
-				return nil
-			}
-			e = mainE()
-			It("should set error", func() {
-				Expect(e).To(HaveOccurred())
-				Expect(e.Error()).To(Equal("tag, commit or branch input must be set"))
-			})
-		})
-		When("there are more than one branch, tag or commit set", func() {
-			var e error
-			configParserMock = func(conf *config) error {
-				conf.Branch = "test-branch"
-				conf.Commit = "test-commit"
-				return nil
-			}
-			e = mainE()
-			It("should set error", func() {
-				Expect(e).To(HaveOccurred())
-				Expect(e.Error()).To(Equal("process inputs: exactly one of [branch, tag, commit] input must be set"))
-			})
-		})
+	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		config, ok := args.Get(0).(*config)
+		if ok {
+		}
+		config.Branch = "test-branch"
+		config.Commit = "test-commit"
 	})
-	Context("checking out", func() {
-		When("branch is the input", func() {
-			var e error
-			var arg string
-			var opts []string
-			configParserMock = func(conf *config) error {
-				conf.Branch = "test-branch"
-				return nil
-			}
-			storeArg = func(a string) {
-				arg = a
-			}
-			storeOpts = func(o []string) {
-				opts = o
-			}
-			e = mainE()
-			It("should have branch checkout command", func() {
-				Expect(e).NotTo(HaveOccurred())
-				Expect(arg).To(Equal("test-branch"))
-				Expect(opts).To(HaveLen(2))
-				Expect(opts[0]).To(Equal("origin"))
-				Expect(opts[1]).To(Equal("test-branch"))
-			})
-		})
-		When("commit is the input", func() {
-			var e error
-			var arg string
-			var opts []string
-			configParserMock = func(conf *config) error {
-				conf.Commit = "test-commit"
-				return nil
-			}
-			storeArg = func(a string) {
-				arg = a
-			}
-			storeOpts = func(o []string) {
-				opts = o
-			}
-			e = mainE()
-			It("should have commit checkout command", func() {
-				Expect(e).NotTo(HaveOccurred())
-				Expect(arg).To(Equal("test-commit"))
-				Expect(opts).To(BeEmpty())
-			})
-		})
-		When("tag is the input", func() {
-			var e error
-			var arg string
-			var opts []string
-			configParserMock = func(conf *config) error {
-				conf.Tag = "test-tag"
-				return nil
-			}
-			storeArg = func(a string) {
-				arg = a
-			}
-			storeOpts = func(o []string) {
-				opts = o
-			}
-			e = mainE()
-			It("should have commit checkout command", func() {
-				Expect(e).NotTo(HaveOccurred())
-				Expect(arg).To(Equal("test-tag"))
-				Expect(opts).To(HaveLen(1))
-				Expect(opts[0]).To(Equal("--tags"))
-			})
-		})
+
+	// Act
+	err = cloner.clone()
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "process inputs: exactly one of [branch, tag, commit] input must be set")
+}
+
+func TestSimpleCloneStepBranchInputCreatesBranchCommand(t *testing.T) {
+	// Arrange
+	var err error
+	parser := new(mockConfigParser)
+	gitFactory := new(mockGitCommandFactory)
+	gitCommand := new(mockGitCommand)
+	cloner := simpleGitCloner{
+		parser:     parser,
+		gitFactory: gitFactory,
+	}
+
+	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		config, ok := args.Get(0).(*config)
+		if ok {
+		}
+		config.Branch = "test-branch"
 	})
-})
+	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
+	gitCommand.On("init").Return(nil)
+	gitCommand.On("addRemote", mock.Anything, mock.Anything).Return(nil)
+	gitCommand.On("fetchWithRetry", mock.Anything, mock.Anything).Return(nil)
+	gitCommand.On("checkout", mock.Anything).Return(nil)
+	gitCommand.On("merge", mock.Anything).Return(nil)
+
+	// Act
+	err = cloner.clone()
+
+	// Assert
+	assert.NoError(t, err)
+	gitCommand.AssertNumberOfCalls(t, "fetchWithRetry", 1)
+	gitCommand.AssertCalled(t, "fetchWithRetry", "origin", "test-branch")
+	gitCommand.AssertNumberOfCalls(t, "checkout", 1)
+	gitCommand.AssertCalled(t, "checkout", "test-branch")
+}
+
+func TestSimpleCloneStepTagInputCreatesTagCommand(t *testing.T) {
+	// Arrange
+	var err error
+	parser := new(mockConfigParser)
+	gitFactory := new(mockGitCommandFactory)
+	gitCommand := new(mockGitCommand)
+	cloner := simpleGitCloner{
+		parser:     parser,
+		gitFactory: gitFactory,
+	}
+
+	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		config, ok := args.Get(0).(*config)
+		if ok {
+		}
+		config.Tag = "test-tag"
+	})
+	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
+	gitCommand.On("init").Return(nil)
+	gitCommand.On("addRemote", mock.Anything, mock.Anything).Return(nil)
+	gitCommand.On("fetchWithRetry", mock.Anything).Return(nil)
+	gitCommand.On("checkout", mock.Anything).Return(nil)
+	gitCommand.On("merge", mock.Anything).Return(nil)
+
+	// Act
+	err = cloner.clone()
+
+	// Assert
+	assert.NoError(t, err)
+	gitCommand.AssertNumberOfCalls(t, "fetchWithRetry", 1)
+	gitCommand.AssertCalled(t, "fetchWithRetry", "--tags")
+	gitCommand.AssertNumberOfCalls(t, "checkout", 1)
+	gitCommand.AssertCalled(t, "checkout", "test-tag")
+}
+
+func TestSimpleCloneStepCommitInputCreatesCommitCommand(t *testing.T) {
+	// Arrange
+	var err error
+	parser := new(mockConfigParser)
+	gitFactory := new(mockGitCommandFactory)
+	gitCommand := new(mockGitCommand)
+	cloner := simpleGitCloner{
+		parser:     parser,
+		gitFactory: gitFactory,
+	}
+
+	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		config, ok := args.Get(0).(*config)
+		if ok {
+		}
+		config.Commit = "test-commit"
+	})
+	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
+	gitCommand.On("init").Return(nil)
+	gitCommand.On("addRemote", mock.Anything, mock.Anything).Return(nil)
+	gitCommand.On("fetchWithRetry").Return(nil)
+	gitCommand.On("checkout", mock.Anything).Return(nil)
+	gitCommand.On("merge", mock.Anything).Return(nil)
+
+	// Act
+	err = cloner.clone()
+
+	// Assert
+	assert.NoError(t, err)
+	gitCommand.AssertNumberOfCalls(t, "fetchWithRetry", 1)
+	gitCommand.AssertCalled(t, "fetchWithRetry")
+	gitCommand.AssertNumberOfCalls(t, "checkout", 1)
+	gitCommand.AssertCalled(t, "checkout", "test-commit")
+}

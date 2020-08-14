@@ -7,11 +7,7 @@
   branch = "master"
 
 [[constraint]]
-  name = "github.com/onsi/gomega"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/onsi/ginkgo"
+  name = "github.com/stretchr/testify"
   branch = "master"
 
 [prune]
