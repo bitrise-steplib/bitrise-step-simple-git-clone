@@ -101,7 +101,7 @@ func buildFetchOpts(checkoutType checkoutType, arg string) []string {
 		opts = append(opts, "--tags")
 	}
 	if checkoutType == branch {
-		opts = append(opts, "origin", arg)
+		opts = append(opts, "origin", "refs/heads/"+arg)
 	}
 	return opts
 }

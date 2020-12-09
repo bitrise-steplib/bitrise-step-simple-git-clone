@@ -8,7 +8,6 @@ import (
 
 func TestSimpleCloneStepNoInputFails(t *testing.T) {
 	// Arrange
-	var err error
 	parser := new(mockConfigParser)
 	gitFactory := new(mockGitCommandFactory)
 	cloner := simpleGitCloner{
@@ -19,7 +18,7 @@ func TestSimpleCloneStepNoInputFails(t *testing.T) {
 	parser.On("parse", mock.Anything).Return(nil)
 
 	// Act
-	err = cloner.clone()
+	err := cloner.clone()
 
 	// Assert
 	assert.Error(t, err)
@@ -28,7 +27,6 @@ func TestSimpleCloneStepNoInputFails(t *testing.T) {
 
 func TestSimpleCloneStepMultipleInputsFails(t *testing.T) {
 	// Arrange
-	var err error
 	parser := new(mockConfigParser)
 	gitFactory := new(mockGitCommandFactory)
 	cloner := simpleGitCloner{
@@ -39,13 +37,13 @@ func TestSimpleCloneStepMultipleInputsFails(t *testing.T) {
 	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		config, ok := args.Get(0).(*config)
 		if ok {
+			config.Branch = "test-branch"
+			config.Commit = "test-commit"
 		}
-		config.Branch = "test-branch"
-		config.Commit = "test-commit"
 	})
 
 	// Act
-	err = cloner.clone()
+	err := cloner.clone()
 
 	// Assert
 	assert.Error(t, err)
@@ -54,7 +52,6 @@ func TestSimpleCloneStepMultipleInputsFails(t *testing.T) {
 
 func TestSimpleCloneStepBranchInputCreatesBranchCommand(t *testing.T) {
 	// Arrange
-	var err error
 	parser := new(mockConfigParser)
 	gitFactory := new(mockGitCommandFactory)
 	gitCommand := new(mockGitCommand)
@@ -66,8 +63,8 @@ func TestSimpleCloneStepBranchInputCreatesBranchCommand(t *testing.T) {
 	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		config, ok := args.Get(0).(*config)
 		if ok {
+			config.Branch = "test-branch"
 		}
-		config.Branch = "test-branch"
 	})
 	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
 	gitCommand.On("init").Return(nil)
@@ -77,19 +74,18 @@ func TestSimpleCloneStepBranchInputCreatesBranchCommand(t *testing.T) {
 	gitCommand.On("merge", mock.Anything).Return(nil)
 
 	// Act
-	err = cloner.clone()
+	err := cloner.clone()
 
 	// Assert
 	assert.NoError(t, err)
 	gitCommand.AssertNumberOfCalls(t, "fetchWithRetry", 1)
-	gitCommand.AssertCalled(t, "fetchWithRetry", "origin", "test-branch")
+	gitCommand.AssertCalled(t, "fetchWithRetry", "origin", "refs/heads/test-branch")
 	gitCommand.AssertNumberOfCalls(t, "checkout", 1)
 	gitCommand.AssertCalled(t, "checkout", "test-branch")
 }
 
 func TestSimpleCloneStepTagInputCreatesTagCommand(t *testing.T) {
 	// Arrange
-	var err error
 	parser := new(mockConfigParser)
 	gitFactory := new(mockGitCommandFactory)
 	gitCommand := new(mockGitCommand)
@@ -101,8 +97,8 @@ func TestSimpleCloneStepTagInputCreatesTagCommand(t *testing.T) {
 	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		config, ok := args.Get(0).(*config)
 		if ok {
+			config.Tag = "test-tag"
 		}
-		config.Tag = "test-tag"
 	})
 	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
 	gitCommand.On("init").Return(nil)
@@ -112,7 +108,7 @@ func TestSimpleCloneStepTagInputCreatesTagCommand(t *testing.T) {
 	gitCommand.On("merge", mock.Anything).Return(nil)
 
 	// Act
-	err = cloner.clone()
+	err := cloner.clone()
 
 	// Assert
 	assert.NoError(t, err)
@@ -124,7 +120,6 @@ func TestSimpleCloneStepTagInputCreatesTagCommand(t *testing.T) {
 
 func TestSimpleCloneStepCommitInputCreatesCommitCommand(t *testing.T) {
 	// Arrange
-	var err error
 	parser := new(mockConfigParser)
 	gitFactory := new(mockGitCommandFactory)
 	gitCommand := new(mockGitCommand)
@@ -136,8 +131,8 @@ func TestSimpleCloneStepCommitInputCreatesCommitCommand(t *testing.T) {
 	parser.On("parse", mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		config, ok := args.Get(0).(*config)
 		if ok {
+			config.Commit = "test-commit"
 		}
-		config.Commit = "test-commit"
 	})
 	gitFactory.On("new", mock.Anything).Return(gitCommand, nil)
 	gitCommand.On("init").Return(nil)
@@ -147,7 +142,7 @@ func TestSimpleCloneStepCommitInputCreatesCommitCommand(t *testing.T) {
 	gitCommand.On("merge", mock.Anything).Return(nil)
 
 	// Act
-	err = cloner.clone()
+	err := cloner.clone()
 
 	// Assert
 	assert.NoError(t, err)

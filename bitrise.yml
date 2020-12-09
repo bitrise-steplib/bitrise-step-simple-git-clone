@@ -7,6 +7,7 @@ workflows:
       - test_checkout_commit
       - test_checkout_tag
       - test_checkout_branch
+      - test_checkout_branch_with_same_tag
       - test_checkout_different_dir
       - test_ssh_git_prefix
     steps:
@@ -62,6 +63,21 @@ workflows:
             - repository_url: https://github.com/bitrise-io/git-clone-test.git
             - clone_into_dir: ./_tmp
             - branch: master
+      - ensure-clean-git:
+          inputs:
+            - dir_to_check: ./_tmp
+
+  test_checkout_branch_with_same_tag:
+    before_run:
+      - _create_tmpdir
+    steps:
+      - path::./:
+          title: Test branch checkout
+          run_if: true
+          inputs:
+            - repository_url: https://github.com/mateherber/git-clone-test.git
+            - clone_into_dir: ./_tmp
+            - branch: pr_test
       - ensure-clean-git:
           inputs:
             - dir_to_check: ./_tmp
