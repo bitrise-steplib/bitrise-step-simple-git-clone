@@ -1,0 +1,80 @@
+title: |-
+  Simple Git Clone
+summary: |-
+  The step checks out the defined repository state.
+description: |
+  The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
+
+  ### Configuring the Step
+
+  1. The **Git repository URL** is required field, the address of the repository that needs to be cloned.
+  2. The **Clone destination** is required field, the local path where we need to clone.
+  3. In the **Clone Config** section there should be exactly one set of the following:
+     - **Branch**
+     - **Tag**
+     - **Commit**
+
+  ### Related Steps
+
+  - [Activate SSH key (RSA private key)](https://www.bitrise.io/integrations/steps/activate-ssh-key)
+  - [Bitrise.io Cache:Pull](https://www.bitrise.io/integrations/steps/cache-pull)
+  - [Bitrise.io Cache:Push](https://www.bitrise.io/integrations/steps/cache-push)
+  - [Git Clone Repository](https://www.bitrise.io/integrations/steps/git-clone)
+website: https://github.com/bitrise-steplib/bitrise-step-simple-git-clone
+source_code_url: https://github.com/bitrise-steplib/bitrise-step-simple-git-clone
+support_url: https://github.com/bitrise-steplib/bitrise-step-simple-git-clone/issues
+host_os_tags:
+  - osx-10.10
+  - ubuntu-16.04
+type_tags:
+  - utility
+is_requires_admin_user: false
+is_always_run: false
+is_skippable: false
+run_if: ""
+deps:
+  brew:
+    - name: git
+  apt_get:
+    - name: git
+toolkit:
+  go:
+    package_name: github.com/bitrise-steplib/bitrise-step-simple-git-clone
+inputs:
+  - repository_url:
+    opts:
+      title: "Git repository URL"
+      summary: |-
+        URL of the git repository you wish to clone.
+      description: |-
+        The step will try to fetch the repository from the given URL and clone it to the defined clone directory.
+      is_required: true
+  - clone_into_dir:
+    opts:
+      title: "Clone destination (local) directory path"
+      summary: |-
+        Path of the directory where the cloned repository will be placed.
+      description: |-
+        Path of the directory where the cloned repository will be placed.
+      is_required: true
+  - commit:
+    opts:
+      title: "Git Commit to check out"
+      summary: |-
+        Hash of a commit that needs to be checked out.
+      description: |-
+        Hash of a commit that needs to be checked out.
+  - tag:
+    opts:
+      title: "Git Tag to check out"
+      summary: |-
+        Git tag that needs to be checked out.
+      description: |-
+        Git tag that needs to be checked out.
+  - branch:
+    opts:
+      title: "Git Branch to check out"
+      summary: |-
+        Git branch that needs to be checked out.
+      description: |-
+        Git branch that needs to be checked out.
