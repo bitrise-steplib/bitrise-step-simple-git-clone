@@ -1,6 +1,6 @@
 # Simple Git Clone
 
-The step checks out the defined repository state. The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit or a git tag.
+The step checks out the defined repository state. The checkout process depends on the checkout properties: the step checks out a repository state defined by a branch, git commit, or a git tag.
 
 ## How to use this Step
 
