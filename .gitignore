@@ -2,3 +2,5 @@
 .gows.user.yml
 .idea/*
 _tmp/*
+.DS_Store
+bitrise-step-simple-git-clone
