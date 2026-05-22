@@ -101,6 +101,8 @@ workflows:
     before_run:
     - _create_tmpdir
     steps:
+    - activate-ssh-key:
+        run_if: true
     - path::./:
         title: Test ssh git prefix
         run_if: true
