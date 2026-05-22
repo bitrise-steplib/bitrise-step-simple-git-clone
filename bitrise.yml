@@ -11,12 +11,7 @@ workflows:
       - test_checkout_different_dir
       - test_ssh_git_prefix
     steps:
-      - go-list:
-      - golint:
-      - errcheck:
-      - go-test:
-      - activate-ssh-key:
-          run_if: true
+      - git::https://github.com/bitrise-steplib/steps-check.git: { }
 
   ci:
     before_run:
