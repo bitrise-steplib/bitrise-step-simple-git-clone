@@ -31,8 +31,8 @@ type checkoutType string
 
 const (
 	commit checkoutType = "commit"
-	tag                 = "tag"
-	branch              = "branch"
+	tag    checkoutType = "tag"
+	branch checkoutType = "branch"
 )
 
 type simpleGitCloner struct {
@@ -50,7 +50,7 @@ func (c simpleGitCloner) clone() error {
 	var checkoutType checkoutType
 	var checkoutArg string
 
-	var setCheckoutArg = func(arg string) error {
+	setCheckoutArg := func(arg string) error {
 		if checkoutArg != "" {
 			return errors.New("exactly one of [branch, tag, commit] input must be set")
 		}

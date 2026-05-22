@@ -106,8 +106,9 @@ func (_m *mockGitCommandFactory) new(dir string) (gitCommand, error) {
 		r0 = rf(dir)
 	} else {
 		if ret.Get(0) != nil {
-			r0, ok = ret.Get(0).(gitCommand)
+			rr0, ok := ret.Get(0).(gitCommand)
 			if ok {
+				r0 = rr0
 			}
 		}
 	}
