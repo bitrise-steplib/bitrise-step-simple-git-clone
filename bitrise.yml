@@ -11,7 +11,9 @@ workflows:
     - test_checkout_different_dir
     - test_ssh_git_prefix
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git: { }
+    - git::https://github.com/bitrise-steplib/steps-check.git@golangci-lint-version:
+        inputs:
+        - golangci_lint_version: v2.7.0
 
   ci:
     before_run:
