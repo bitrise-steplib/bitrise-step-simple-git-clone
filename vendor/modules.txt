@@ -8,8 +8,8 @@ github.com/bitrise-io/go-utils/log
 github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/retry
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.31.0.20260202205354-9f1705102513
-## explicit; go 1.17
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.36
+## explicit; go 1.21
 github.com/bitrise-io/go-utils/v2/command
 github.com/bitrise-io/go-utils/v2/env
 github.com/bitrise-io/go-utils/v2/git
