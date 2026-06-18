@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/command/git"
+	"os"
+
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
-	"os"
+	"github.com/bitrise-io/go-utils/v2/command"
+	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/git"
 )
 
 type gitCommand interface {
@@ -22,49 +24,51 @@ type gitCommandFactory interface {
 }
 
 type realGitCommand struct {
-	git git.Git
+	gitFactory git.Factory
 }
 
 func (r realGitCommand) init() error {
-	return run(r.git.Init())
+	return run(r.gitFactory.Init().Create(os.Stdout, os.Stderr, nil))
 }
 
 func (r realGitCommand) addRemote(name, url string) error {
-	return run(r.git.RemoteAdd(name, url))
+	return run(r.gitFactory.RemoteAdd(name, url).Create(os.Stdout, os.Stderr, nil))
 }
 
 func (r realGitCommand) merge(arg string) error {
-	return run(r.git.Merge(arg))
+	return run(r.gitFactory.Merge(arg).Create(os.Stdout, os.Stderr, nil))
 }
 
 func (r realGitCommand) fetchWithRetry(opts ...string) error {
-	return runWithRetry(func() *command.Model {
-		return r.git.Fetch(opts...)
+	return runWithRetry(func() command.Command {
+		return r.gitFactory.Fetch(opts...).Create(os.Stdout, os.Stderr, nil)
 	})
 }
 
 func (r realGitCommand) checkout(arg string) error {
-	return run(r.git.Checkout(arg))
+	return run(r.gitFactory.Checkout(arg).Create(os.Stdout, os.Stderr, nil))
 }
 
 type realGitCommandFactory struct{}
 
 func (r realGitCommandFactory) new(dir string) (gitCommand, error) {
-	g, err := git.New(dir)
+	envRepo := env.NewRepository()
+	cmdFactory := command.NewFactory(envRepo)
+	g, err := git.NewFactory(dir, cmdFactory, nil)
 	if err != nil {
 		return nil, err
 	}
 	return realGitCommand{
-		git: g,
+		gitFactory: g,
 	}, nil
 }
 
-func run(c *command.Model) error {
+func run(c command.Command) error {
 	log.Infof(c.PrintableCommandArgs())
-	return c.SetStdout(os.Stdout).SetStderr(os.Stderr).Run()
+	return c.Run()
 }
 
-func runWithRetry(f func() *command.Model) error {
+func runWithRetry(f func() command.Command) error {
 	return retry.Times(2).Wait(5).Try(func(attempt uint) error {
 		if attempt > 0 {
 			log.Warnf("Retrying...")
